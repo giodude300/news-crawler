@@ -149,6 +149,8 @@ cd news-crawler
 Create the local environment file (PowerShell):
 ```powershell
 Copy-Item backend/.env.example backend/.env
+# macOS (Terminal)
+cp backend/.env.example backend/.env
 ```
 
 Make sure the database settings in `backend/.env` are:
@@ -282,6 +284,8 @@ Check JavaScript and TypeScript:
 ```powershell
 
 docker compose run --rm -v "${PWD}/frontend:/app" frontend npm run lint
+# macOS (Terminal)
+docker compose run --rm -v "$(pwd)/frontend:/app" frontend npm run lint
 
 ```
 
@@ -290,6 +294,8 @@ Automatically fix JavaScript and TypeScript issues, if the script is available:
 ```powershell
 
 docker compose run --rm -v "${PWD}/frontend:/app" frontend npx eslint src/App.tsx --fix
+# macOS (Terminal)
+docker compose run --rm -v "$(pwd)/frontend:/app" frontend npx eslint src/App.tsx --fix
 
 ```
 
@@ -300,6 +306,8 @@ Format frontend source files:
 ```powershell
 
 docker compose run --rm -v "${PWD}/frontend:/app" frontend npx prettier --write src
+# macOS (Terminal)
+docker compose run --rm -v "$(pwd)/frontend:/app" frontend npx prettier --write src
 
 ```
 
@@ -308,6 +316,8 @@ Check formatting without modifying files:
 ```powershell
 
 docker compose run --rm -v "${PWD}/frontend:/app" frontend npm run format:check
+# macOS (Terminal)
+docker compose run --rm -v "$(pwd)/frontend:/app" frontend npm run format:check
 
 ```
 
@@ -331,6 +341,8 @@ Run the Vitest test suite:
 ```powershell
 
 docker compose run --rm -v "${PWD}/frontend:/app" frontend npm run test
+# macOS (Terminal)
+docker compose run --rm -v "$(pwd)/frontend:/app" frontend npm run test
 
 ```
 
@@ -351,14 +363,20 @@ docker compose exec backend composer format:check
 \# Frontend tests
 
 docker compose run --rm -v "${PWD}/frontend:/app" frontend npm run test
+# macOS (Terminal)
+docker compose run --rm -v "$(pwd)/frontend:/app" frontend npm run test
 
 \# Frontend lint
 
 docker compose run --rm -v "${PWD}/frontend:/app" frontend npm run lint
+# macOS (Terminal)
+docker compose run --rm -v "$(pwd)/frontend:/app" frontend npm run lint
 
 \# Frontend formatting check
 
 docker compose run --rm -v "${PWD}/frontend:/app" frontend npm run format:check
+# macOS (Terminal)
+docker compose run --rm -v "$(pwd)/frontend:/app" frontend npm run format:check
 
 \# Frontend production build and asset copy
 
@@ -527,6 +545,8 @@ Crear el archivo de entorno local (PowerShell):
 
 ```powershell
 Copy-Item backend/.env.example backend/.env
+# macOS (Terminal)
+cp backend/.env.example backend/.env
 ```
 
 Comprueba que `backend/.env` tenga esta configuración de base de datos:
@@ -661,6 +681,8 @@ Comprobar JavaScript y TypeScript:
 ```powershell
 
 docker compose run --rm -v "${PWD}/frontend:/app" frontend npm run lint
+# macOS (Terminal)
+docker compose run --rm -v "$(pwd)/frontend:/app" frontend npm run lint
 
 ```
 
@@ -669,6 +691,8 @@ Corregir automáticamente los problemas de JavaScript y TypeScript, si el script
 ```powershell
 
 docker compose run --rm -v "${PWD}/frontend:/app" frontend npx eslint src/App.tsx --fix
+# macOS (Terminal)
+docker compose run --rm -v "$(pwd)/frontend:/app" frontend npx eslint src/App.tsx --fix
 
 ```
 
@@ -679,6 +703,8 @@ Aplicar formato:
 ```powershell
 
 docker compose run --rm -v "${PWD}/frontend:/app" frontend npx prettier --write src
+# macOS (Terminal)
+docker compose run --rm -v "$(pwd)/frontend:/app" frontend npx prettier --write src
 
 ```
 
@@ -687,6 +713,8 @@ Comprobar formato sin modificar archivos:
 ```powershell
 
 docker compose run --rm -v "${PWD}/frontend:/app" frontend npm run format:check
+# macOS (Terminal)
+docker compose run --rm -v "$(pwd)/frontend:/app" frontend npm run format:check
 
 ```
 
@@ -710,6 +738,8 @@ Ejecutar la suite de Vitest:
 ```powershell
 
 docker compose run --rm -v "${PWD}/frontend:/app" frontend npm run test
+# macOS (Terminal)
+docker compose run --rm -v "$(pwd)/frontend:/app" frontend npm run test
 
 ```
 
@@ -730,14 +760,20 @@ docker compose exec backend composer format:check
 \# Pruebas del frontend
 
 docker compose run --rm -v "${PWD}/frontend:/app" frontend npm run test
+# macOS (Terminal)
+docker compose run --rm -v "$(pwd)/frontend:/app" frontend npm run test
 
 \# ESLint del frontend
 
 docker compose run --rm -v "${PWD}/frontend:/app" frontend npm run lint
+# macOS (Terminal)
+docker compose run --rm -v "$(pwd)/frontend:/app" frontend npm run lint
 
 \# Verificar formato del frontend
 
 docker compose run --rm -v "${PWD}/frontend:/app" frontend npm run format:check
+# macOS (Terminal)
+docker compose run --rm -v "$(pwd)/frontend:/app" frontend npm run format:check
 
 \# Compilar frontend y copiar los assets al volumen compartido
 
