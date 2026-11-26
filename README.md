@@ -168,6 +168,8 @@ DB_PASSWORD=crawler_password
 ```powershell
 
 docker compose up --build -d
+docker compose exec backend php artisan optimize:clear
+docker compose exec backend php artisan l5-swagger:generate
 ```
 The `frontend` service is a one-shot build container. It installs frontend dependencies, builds the React application, and copies the generated files to the shared `frontend_dist` volume. The `backend` service waits for that build and for PostgreSQL to become healthy, then serves the application through Laravel.
 
@@ -565,6 +567,8 @@ DB_PASSWORD=crawler_password
 ```powershell
 
 docker compose up --build -d
+docker compose exec backend php artisan optimize:clear
+docker compose exec backend php artisan l5-swagger:generate
 ```
 El servicio `frontend` es un contenedor de compilación que se ejecuta una sola vez. Instala las dependencias del frontend, compila React y copia los archivos generados al volumen compartido `frontend_dist`. El servicio `backend` espera a que termine esa compilación y a que PostgreSQL esté saludable; después sirve la aplicación mediante Laravel.
 
