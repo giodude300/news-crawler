@@ -32,7 +32,7 @@ class StoryProcessor {
         ];
     }
 
-    private function countWords(string $title): int {
+    public function countWords(string $title): int {
         $title = preg_replace('/[^\p{L}\p{N}\s]/u', '', $title);
         $words = preg_split('/\s+/', trim($title));
         return count(array_filter($words));
