@@ -143,6 +143,37 @@ class StoryProcessorTest extends TestCase {
         $this->assertCount(0, $result['short_titles']);
     }
 
+    public function test_assessment_example_is_counted_as_five_words(): void {
+        $processor = new StoryProcessor();
+        $this->assertSame(5, $processor->countWords('This is - a self-explained example'));
+    }
+
+    public function test_empty_or_symbol_only_titles_have_zero_words(): void {
+        $processor = new StoryProcessor();
+        $this->assertSame(0, $processor->countWords(''));
+        $this->assertSame(0, $processor->countWords('--- !!! {}'));
+    }
+
+    public function test_long_titles_keep_original_order_when_comment_counts_are_equal(): void {
+        $stories = [
+            [
+                'id' => 1,
+                'title' => 'One two three four five six',
+                'points' => 10,
+                'comments' => 20,
+            ],
+            [
+                'id' => 2,
+                'title' => 'Another title with more than five words',
+                'points' => 20,
+                'comments' => 20,
+            ],
+        ];
+
+        $result = (new StoryProcessor())->process($stories);
+        $this->assertSame([1, 2], array_column($result['long_titles'], 'id'));
+    }
+
     public function test_empty_input_returns_empty_groups(): void {
         $result = (new StoryProcessor())->process([]);
 

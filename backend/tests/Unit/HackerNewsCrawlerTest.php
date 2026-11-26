@@ -32,6 +32,9 @@ class HackerNewsCrawlerTest extends TestCase {
             'points' => 91,
             'comments' => 48,
         ], $stories[1]);
+        Http::assertSent(function ($request) {
+            return $request->url() === 'https://news.ycombinator.com/' && $request->method() === 'GET';
+        });
     }
 
     public function test_crawler_returns_a_maximum_of_30_stories(): void {
@@ -101,6 +104,11 @@ class HackerNewsCrawlerTest extends TestCase {
         ]);
         $stories = (new HackerNewsCrawler())->crawl();
         $this->assertSame('OMG OMG OMG, I can’t imagine: The magnitude of what’s now happening', $stories[0]['title']);
+    }
+
+    public function test_empty_html_returns_an_empty_list(): void {
+        Http::fake([ 'https://news.ycombinator.com/' => Http::response($this->getHtml([]))]);
+        $this->assertSame([], (new HackerNewsCrawler())->crawl());
     }
 
     public function test_exception_is_thrown_when_hacker_news_request_fails(): void {

@@ -43,11 +43,33 @@ class StoryProcessingApiTest extends TestCase {
                     'stories_count',
                     'duration_ms',
                 ],
-            ]);
+            ])
+            ->assertJsonPath('execution.stories_count', 2)
+            ->assertJsonPath('long_titles.0.id', 2)
+            ->assertJsonPath('short_titles.0.id', 1);
+
+        $executionId = $response->json('execution.id');
 
         $this->assertDatabaseHas('processing_executions', [
-            'id' => $response->json('execution.id'),
+            'id' => $executionId,
             'stories_count' => 2,
+        ]);
+
+        $this->assertDatabaseCount('stories', 2);
+        $this->assertDatabaseHas('stories', [
+            'processing_execution_id' => $executionId,
+            'hacker_news_id' => 1,
+            'filter_type' => 'short_titles',
+            'word_count' => 4,
+            'position' => 1,
+        ]);
+
+        $this->assertDatabaseHas('stories', [
+            'processing_execution_id' => $executionId,
+            'hacker_news_id' => 2,
+            'filter_type' => 'long_titles',
+            'word_count' => 6,
+            'position' => 1,
         ]);
     }
 
@@ -84,6 +106,19 @@ class StoryProcessingApiTest extends TestCase {
             ->assertJsonCount(5, 'data');
     }
 
+    public function test_execution_history_is_ordered_from_newest_to_oldest(): void {
+        $olderExecution = ProcessingExecution::factory()->create([
+            'requested_at' => now()->subHour(),
+        ]);
+        $newerExecution = ProcessingExecution::factory()->create([
+            'requested_at' => now(),
+        ]);
+        $response = $this->getJson('/api/executions');
+        $response->assertOk()
+            ->assertJsonPath('data.0.id', $newerExecution->id)
+            ->assertJsonPath('data.1.id', $olderExecution->id);
+    }
+
     public function test_execution_history_rejects_page_sizes_greater_than_30(): void {
         $response = $this->getJson('/api/executions?per_page=31');
 
@@ -103,7 +138,8 @@ class StoryProcessingApiTest extends TestCase {
 
         $response->assertOk()
             ->assertJsonPath('id', $execution->id)
-            ->assertJsonPath('stories_count', $execution->stories_count);
+            ->assertJsonPath('stories_count', $execution->stories_count)
+            ->assertJsonPath('filters_applied', ['long_titles', 'short_titles']);
     }
 
     public function test_not_found_is_returned_for_nonexistent_execution(): void {
