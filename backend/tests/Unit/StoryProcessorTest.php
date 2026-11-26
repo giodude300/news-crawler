@@ -180,4 +180,43 @@ class StoryProcessorTest extends TestCase {
         $this->assertSame([], $result['long_titles']);
         $this->assertSame([], $result['short_titles']);
     }
+
+    public function test_punctuation_at_the_beginning_and_end_does_not_add_words(): void {
+        $processor = new StoryProcessor();
+        $this->assertSame(2, $processor->countWords('...Hello!!! world???'));
+    }
+
+    public function test_standalone_symbols_are_ignored_when_counting_words(): void {
+        $processor = new StoryProcessor();
+        $this->assertSame(2, $processor->countWords('hello +++ world ='));
+    }
+
+    public function test_five_words_are_short_and_six_words_are_long(): void {
+        $stories = [
+            [
+                'id' => 1,
+                'title' => 'One two three four five',
+                'points' => 10,
+                'comments' => 5,
+            ],
+            [
+                'id' => 2,
+                'title' => 'One two three four five six',
+                'points' => 20,
+                'comments' => 10,
+            ],
+        ];
+
+        $result = (new StoryProcessor())->process($stories);
+        $this->assertSame([1], array_column($result['short_titles'], 'id'));
+        $this->assertSame([2], array_column($result['long_titles'], 'id'));
+    }
+
+    public function test_accented_and_unicode_letters_are_counted_as_words(): void {
+        $processor = new StoryProcessor();
+        $this->assertSame(
+            5,
+            $processor->countWords('¡Hola, mundo! Café déjà-vu: programación.'),
+        );
+    }
 }
