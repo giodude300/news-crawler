@@ -43,3 +43,4 @@ Desktop.ini
 
 # Local files
 *.local
+backend/storage/api-docs/api-docs.json
