@@ -41,51 +41,45 @@ This approach simplifies the initial setup, reduces differences between local an
 
 The backend follows a separation of responsibilities:
 
-- **Crawler:** Retrieves and extracts the first 30 stories from Hacker News.
-- **Story Processor:** Counts words, classifies stories, and applies the sorting rules.
-- **Story Processing Service:** Coordinates the crawling and processing workflow and persists execution results.
-- **Models:** Represent processing executions and their associated stories.
-- **Controller:** Exposes the REST API endpoints.
+- **Crawler:\*\*** Retrieves and extracts the first 30 stories from Hacker News.
+- **Story Processor:\*\*** Counts words, classifies stories, and applies the sorting rules.
+- **Story Processing Service:\*\*** Coordinates the crawling and processing workflow and persists execution results.
+- **Models:\*\*** Represent processing executions and their associated stories.
+- **Controller:\*\*** Exposes the REST API endpoints.
 
 The processing workflow uses database transactions to keep execution metadata and associated stories consistent.
 
 ### Story Processing Rules
-
-Titles are classified according to their word count:
 
 | Category | Condition | Sorting |
 |---|---|---|
 | Long titles | More than 5 words | Comments descending |
 | Short titles | 5 words or fewer | Points descending |
 
-Words are counted using whitespace separation while ignoring punctuation and symbols.
+Words are counted while ignoring punctuation and symbols.
 
-For example:
+Example:
 
 ```text
 "This is - a self-explained example"
 ```
 
-The result is **5 words**.
+The result is **5 words\*\***.
 
 When two stories have the same sorting value, their original relative order is preserved.
 
 ### Data Persistence
 
-The application uses two main entities:
+The application uses two main entities.
 
-**Processing Executions**
-
-Stores metadata for each processing request:
+**Processing Executions\*\*** store:
 
 - Request timestamp.
 - Applied filters.
 - Number of processed stories.
 - Processing duration.
 
-**Stories**
-
-Stores the stories associated with each execution:
+**Stories\*\*** store:
 
 - Hacker News story ID.
 - Title.
@@ -105,7 +99,7 @@ Each execution maintains its own associated stories, allowing historical results
 | GET | `/api/executions` | Returns the processing execution history with pagination and category counts. |
 | GET | `/api/executions/{id}` | Returns execution details and associated stories. |
 
-The execution history supports the following query parameters:
+The execution history supports these query parameters:
 
 | Parameter | Description | Default |
 |---|---|---|
@@ -133,7 +127,7 @@ Interactive API documentation is available through Swagger at `/api/documentatio
 
 ## Requirements
 
-You only need the following tools installed locally:
+Install the following tools locally:
 
 - Docker Desktop
 - Docker Compose
@@ -145,15 +139,14 @@ PHP, Composer, Node.js, npm, and PostgreSQL run inside Docker containers.
 
 ### 1. Clone the repository
 
-```bash
+```powershell
 git clone https://github.com/giodude300/news-crawler.git
 cd news-crawler
 ```
 
 ### 2. Configure Laravel
 
-Create the local environment file:
-
+Create the local environment file (PowerShell):
 ```powershell
 Copy-Item backend/.env.example backend/.env
 ```
@@ -169,21 +162,23 @@ DB_USERNAME=crawler
 DB_PASSWORD=crawler_password
 ```
 
-### 3. Start the application
+### 3. Build and start the application
+```powershell
 
-```bash
 docker compose up --build -d
 ```
+The `frontend` service is a one-shot build container. It installs frontend dependencies, builds the React application, and copies the generated files to the shared `frontend_dist` volume. The `backend` service waits for that build and for PostgreSQL to become healthy, then serves the application through Laravel.
 
 ### 4. Generate the Laravel application key
 
-```bash
+```powershell
 docker compose exec backend php artisan key:generate
 ```
 
 ### 5. Run database migrations
 
-```bash
+```powershell
+
 docker compose exec backend php artisan migrate
 ```
 
@@ -191,48 +186,65 @@ docker compose exec backend php artisan migrate
 
 | Service | URL |
 |---|---|
-| Web Application (Frontend) | http://localhost:8000/ |
+
+| Web application (React served by Laravel) | http://localhost:8000/ |
+
 | Backend API | http://localhost:8000/api |
-| Swagger Documentation | http://localhost:8000/api/documentation |
-| Frontend Development Server (Vite) | http://localhost:5173/ |
+
+| Swagger documentation | http://localhost:8000/api/documentation |
+
 | PostgreSQL | localhost:5432 |
 
-The main application entry point is `http://localhost:8000/`. The React frontend is built with Vite, while Laravel provides the main application entry point and REST API.
-
-The Vite development server is also available at `http://localhost:5173/` when running in development mode.
+The main application entry point is `http://localhost:8000/`. The frontend is built with Vite; Laravel serves the generated frontend assets and the REST API. There is no always-running Vite development server in the Docker Compose setup described here.
 
 ## Docker Commands
 
-```bash
-# Start
-docker compose up -d
+```powershell
 
-# Build and start
+\# Build and start all services
+
 docker compose up --build -d
 
-# Stop
+\# Start existing services
+
+docker compose up -d
+
+\# Stop services (preserves named volumes)
+
 docker compose down
 
-# Show containers
+\# Show service status
+
 docker compose ps
 
-# Follow all logs
+\# Follow all service logs
+
 docker compose logs -f
 
-# Follow backend logs
+\# Follow backend logs
+
 docker compose logs -f backend
 
-# Follow frontend logs
-docker compose logs -f frontend
+\# Show frontend build logs
+
+docker compose logs frontend
+
+\# Show database logs
+
+docker compose logs -f database
+
 ```
 
-To stop containers and delete the local PostgreSQL volume:
+The `frontend` service completes after building the assets, so it does not remain running. Use `docker compose run --rm -v "${PWD}/frontend:/app" frontend ...` to execute one-off frontend commands. Do not use `docker compose exec frontend`.
 
-```bash
+To stop containers and delete the local PostgreSQL data volume, run:
+
+```powershell
+
 docker compose down -v
 ```
 
-**Warning:** this permanently deletes the local PostgreSQL data.
+**Warning:\*\*** this permanently deletes the local PostgreSQL data.
 
 ## Code Quality and Formatting
 
@@ -240,74 +252,127 @@ docker compose down -v
 
 Apply PHP formatting:
 
-```bash
+```powershell
+
 docker compose exec backend composer format
 ```
 
 Check formatting without modifying files:
 
-```bash
+```powershell
+
 docker compose exec backend composer format:check
 ```
 
-These Composer scripts must be added to `backend/composer.json`:
+These Composer scripts must exist in `backend/composer.json`. If they are not configured yet, add the following entries to the existing `scripts` object, preserving the other scripts:
 
 ```json
 {
-    "scripts": {
-        "format": "php-cs-fixer fix --config=.php-cs-fixer.dist.php",
-        "format:check": "php-cs-fixer fix --config=.php-cs-fixer.dist.php --dry-run --diff"
-    }
+  "scripts": {
+    "format": "php-cs-fixer fix --config=.php-cs-fixer.dist.php",
+    "format:check": "php-cs-fixer fix --config=.php-cs-fixer.dist.php --dry-run --diff"
+  }
 }
 ```
-
-Keep the existing Composer scripts; add these two entries to the existing `scripts` object.
 
 ### Frontend — ESLint
 
 Check JavaScript and TypeScript:
 
-```bash
-docker compose exec frontend npm run lint
+```powershell
+
+docker compose run --rm -v "${PWD}/frontend:/app" frontend npm run lint
+
 ```
 
-Automatically fix JavaScript and TypeScript issues:
+Automatically fix JavaScript and TypeScript issues, if the script is available:
 
-```bash
-docker compose exec frontend npm run lint:fix
+```powershell
+
+docker compose run --rm -v "${PWD}/frontend:/app" frontend npx eslint src/App.tsx --fix
+
 ```
 
 ### Frontend — Prettier
 
-Format supported frontend files:
+Format frontend source files:
 
-```bash
-docker compose exec frontend npm run format
+```powershell
+
+docker compose run --rm -v "${PWD}/frontend:/app" frontend npx prettier --write src
+
 ```
 
 Check formatting without modifying files:
 
-```bash
-docker compose exec frontend npm run format:check
+```powershell
+
+docker compose run --rm -v "${PWD}/frontend:/app" frontend npm run format:check
+
 ```
 
-Prettier should ignore JavaScript and TypeScript files so ESLint can enforce the project's brace and indentation conventions.
+The frontend service is a one-shot container, so use `docker compose run --rm -v "${PWD}/frontend:/app" frontend` for these commands rather than `docker compose exec frontend`.
 
 ## Testing
 
 ### Backend
 
-```bash
+Run the PHPUnit test suite:
+
+```powershell
+
 docker compose exec backend php artisan test
 ```
 
 ### Frontend
 
-```bash
-docker compose exec frontend npm run test
+Run the Vitest test suite:
+
+```powershell
+
+docker compose run --rm -v "${PWD}/frontend:/app" frontend npm run test
+
 ```
 
----
+## Full Validation Checklist
+
+Run these commands from the project root before submitting the assessment. Frontend commands run in temporary containers because the `frontend` service exits after its build.
+
+```powershell
+
+\# Backend tests
+
+docker compose exec backend php artisan test
+
+\# Backend formatting check
+
+docker compose exec backend composer format:check
+
+\# Frontend tests
+
+docker compose run --rm -v "${PWD}/frontend:/app" frontend npm run test
+
+\# Frontend lint
+
+docker compose run --rm -v "${PWD}/frontend:/app" frontend npm run lint
+
+\# Frontend formatting check
+
+docker compose run --rm -v "${PWD}/frontend:/app" frontend npm run format:check
+
+\# Frontend production build and asset copy
+
+docker compose up --build -d
+
+\# Check service status
+
+docker compose ps
+
+```
+
+If any npm script is not defined in `frontend/package.json`, npm will report `Missing script`. Check the available scripts in that file and use the matching configured script.
+
+**---**
 
 # News Crawler
 
@@ -352,51 +417,45 @@ Este enfoque simplifica la configuración inicial, reduce las diferencias entre 
 
 El backend mantiene una separación de responsabilidades:
 
-- **Crawler:** obtiene y extrae las primeras 30 historias de Hacker News.
-- **Story Processor:** cuenta las palabras, clasifica las historias y aplica las reglas de ordenamiento.
-- **Story Processing Service:** coordina el flujo de obtención y procesamiento, y persiste los resultados de cada ejecución.
-- **Modelos:** representan las ejecuciones de procesamiento y sus historias asociadas.
-- **Controlador:** expone los endpoints de la API REST.
+- **Crawler:\*\*** obtiene y extrae las primeras 30 historias de Hacker News.
+- **Story Processor:\*\*** cuenta las palabras, clasifica las historias y aplica las reglas de ordenamiento.
+- **Story Processing Service:\*\*** coordina el flujo de obtención y procesamiento, y persiste los resultados de cada ejecución.
+- **Modelos:\*\*** representan las ejecuciones de procesamiento y sus historias asociadas.
+- **Controlador:\*\*** expone los endpoints de la API REST.
 
 El flujo de procesamiento utiliza transacciones de base de datos para mantener consistentes los metadatos de cada ejecución y las historias asociadas.
 
 ### Reglas de procesamiento
-
-Los títulos se clasifican según su cantidad de palabras:
 
 | Categoría | Condición | Ordenamiento |
 |---|---|---|
 | Long titles | Más de 5 palabras | Comentarios descendente |
 | Short titles | 5 palabras o menos | Puntos descendente |
 
-Las palabras se cuentan mediante separación por espacios en blanco, ignorando los signos de puntuación y símbolos.
+Las palabras se cuentan ignorando los signos de puntuación y símbolos.
 
-Por ejemplo:
+Ejemplo:
 
 ```text
 "This is - a self-explained example"
 ```
 
-El resultado es **5 palabras**.
+El resultado es **5 palabras\*\***.
 
 Cuando dos historias tienen el mismo valor de ordenamiento, se conserva su orden relativo original.
 
 ### Persistencia de datos
 
-La aplicación utiliza dos entidades principales:
+La aplicación utiliza dos entidades principales.
 
-**Processing Executions**
-
-Almacena los metadatos de cada solicitud de procesamiento:
+**Processing Executions\*\*** almacena:
 
 - Fecha y hora de la solicitud.
 - Filtros aplicados.
 - Número de historias procesadas.
 - Duración del procesamiento.
 
-**Stories**
-
-Almacena las historias asociadas a cada ejecución:
+**Stories\*\*** almacena:
 
 - Identificador de Hacker News.
 - Título.
@@ -444,7 +503,7 @@ La documentación interactiva de la API está disponible mediante Swagger en `/a
 
 ## Requisitos
 
-Únicamente necesitas tener instalados localmente:
+Instala localmente:
 
 - Docker Desktop
 - Docker Compose
@@ -456,14 +515,15 @@ PHP, Composer, Node.js, npm y PostgreSQL se ejecutan dentro de contenedores Dock
 
 ### 1. Clonar el repositorio
 
-```bash
+```powershell
+
 git clone https://github.com/giodude300/news-crawler.git
 cd news-crawler
 ```
 
 ### 2. Configurar Laravel
 
-Crear el archivo de entorno local:
+Crear el archivo de entorno local (PowerShell):
 
 ```powershell
 Copy-Item backend/.env.example backend/.env
@@ -480,21 +540,25 @@ DB_USERNAME=crawler
 DB_PASSWORD=crawler_password
 ```
 
-### 3. Iniciar la aplicación
+### 3. Construir e iniciar la aplicación
 
-```bash
+```powershell
+
 docker compose up --build -d
 ```
+El servicio `frontend` es un contenedor de compilación que se ejecuta una sola vez. Instala las dependencias del frontend, compila React y copia los archivos generados al volumen compartido `frontend_dist`. El servicio `backend` espera a que termine esa compilación y a que PostgreSQL esté saludable; después sirve la aplicación mediante Laravel.
 
 ### 4. Generar la clave de Laravel
 
-```bash
+```powershell
+
 docker compose exec backend php artisan key:generate
 ```
 
 ### 5. Ejecutar las migraciones
 
-```bash
+```powershell
+
 docker compose exec backend php artisan migrate
 ```
 
@@ -502,73 +566,91 @@ docker compose exec backend php artisan migrate
 
 | Servicio | URL |
 |---|---|
-| Aplicación web (Frontend) | http://localhost:8000/ |
+
+| Aplicación web (React servido por Laravel) | http://localhost:8000/ |
+
 | Backend API | http://localhost:8000/api |
 | Documentación Swagger | http://localhost:8000/api/documentation |
-| Servidor de desarrollo frontend (Vite) | http://localhost:5173/ |
+
 | PostgreSQL | localhost:5432 |
 
-La URL principal de acceso a la aplicación es `http://localhost:8000/`. El frontend está desarrollado con React y Vite, mientras que Laravel proporciona el punto de entrada principal de la aplicación y la API REST.
-
-El servidor de desarrollo de Vite también está disponible en `http://localhost:5173/` cuando se ejecuta en modo desarrollo.
+La URL principal es `http://localhost:8000/`. El frontend se compila con Vite; Laravel sirve los archivos generados y la API REST. La configuración Docker Compose descrita aquí no mantiene un servidor de desarrollo Vite ejecutándose permanentemente.
 
 ## Comandos Docker
 
-```bash
-# Iniciar
-docker compose up -d
+```powershell
 
-# Construir e iniciar
+\# Construir e iniciar todos los servicios
+
 docker compose up --build -d
 
-# Detener
+\# Iniciar los servicios existentes
+
+docker compose up -d
+
+\# Detener servicios (conserva los volúmenes nombrados)
+
 docker compose down
 
-# Ver contenedores
+\# Ver estado de los servicios
+
 docker compose ps
 
-# Ver todos los registros
+\# Seguir los logs de todos los servicios
+
 docker compose logs -f
 
-# Ver registros del backend
+\# Seguir los logs del backend
+
 docker compose logs -f backend
 
-# Ver registros del frontend
-docker compose logs -f frontend
+\# Consultar los logs de la compilación frontend
+
+docker compose logs frontend
+
+\# Seguir los logs de la base de datos
+
+docker compose logs -f database
+
 ```
+
+El servicio `frontend` termina después de compilar los archivos, por lo que no permanece ejecutándose. Para ejecutar comandos puntuales del frontend, utiliza `docker compose run --rm -v "${PWD}/frontend:/app" frontend ...`. No utilices `docker compose exec frontend`.
 
 Para detener los contenedores y eliminar el volumen local de PostgreSQL:
 
-```bash
+```powershell
+
 docker compose down -v
 ```
 
-**Advertencia:** este comando elimina permanentemente los datos locales de PostgreSQL.
+**Advertencia:\*\*** este comando elimina permanentemente los datos locales de PostgreSQL.
 
 ## Calidad de código y formato
 
 ### Backend — PHP-CS-Fixer
 
-Aplicar formato:
+Aplicar formato a los archivos fuente del frontend:
 
-```bash
+```powershell
+
 docker compose exec backend composer format
 ```
 
 Comprobar formato sin modificar archivos:
 
-```bash
+```powershell
+
 docker compose exec backend composer format:check
 ```
 
-Estos scripts de Composer deben agregarse a `backend/composer.json`, conservando los scripts existentes:
+Estos scripts de Composer deben existir en `backend/composer.json`. Si todavía no están configurados, agrega las siguientes entradas al objeto `scripts` existente, conservando los demás scripts:
 
 ```json
 {
-    "scripts": {
-        "format": "php-cs-fixer fix --config=.php-cs-fixer.dist.php",
-        "format:check": "php-cs-fixer fix --config=.php-cs-fixer.dist.php --dry-run --diff"
-    }
+  "scripts": {
+    "format": "php-cs-fixer fix --config=.php-cs-fixer.dist.php",
+    "format:check": "php-cs-fixer fix --config=.php-cs-fixer.dist.php --dry-run --diff"
+  }
 }
 ```
 
@@ -576,42 +658,95 @@ Estos scripts de Composer deben agregarse a `backend/composer.json`, conservando
 
 Comprobar JavaScript y TypeScript:
 
-```bash
-docker compose exec frontend npm run lint
+```powershell
+
+docker compose run --rm -v "${PWD}/frontend:/app" frontend npm run lint
+
 ```
 
-Corregir automáticamente:
+Corregir automáticamente los problemas de JavaScript y TypeScript, si el script está disponible:
 
-```bash
-docker compose exec frontend npm run lint:fix
+```powershell
+
+docker compose run --rm -v "${PWD}/frontend:/app" frontend npx eslint src/App.tsx --fix
+
 ```
 
 ### Frontend — Prettier
 
 Aplicar formato:
 
-```bash
-docker compose exec frontend npm run format
+```powershell
+
+docker compose run --rm -v "${PWD}/frontend:/app" frontend npx prettier --write src
+
 ```
 
 Comprobar formato sin modificar archivos:
 
-```bash
-docker compose exec frontend npm run format:check
+```powershell
+
+docker compose run --rm -v "${PWD}/frontend:/app" frontend npm run format:check
+
 ```
 
-Prettier debe ignorar JavaScript y TypeScript para que ESLint controle las convenciones de llaves e indentación.
+El servicio frontend es un contenedor temporal; por eso estos comandos utilizan `docker compose run --rm -v "${PWD}/frontend:/app" frontend` en lugar de `docker compose exec frontend`.
 
 ## Pruebas
 
 ### Backend
 
-```bash
+Ejecutar la suite de PHPUnit:
+
+```powershell
+
 docker compose exec backend php artisan test
 ```
 
 ### Frontend
 
-```bash
-docker compose exec frontend npm run test
+Ejecutar la suite de Vitest:
+
+```powershell
+
+docker compose run --rm -v "${PWD}/frontend:/app" frontend npm run test
+
 ```
+
+## Lista de validación final
+
+Ejecuta estos comandos desde la raíz del proyecto antes de entregar el assessment. Los comandos del frontend se ejecutan en contenedores temporales porque el servicio `frontend` termina después de compilar.
+
+```powershell
+
+\# Pruebas del backend
+
+docker compose exec backend php artisan test
+
+\# Verificar formato del backend
+
+docker compose exec backend composer format:check
+
+\# Pruebas del frontend
+
+docker compose run --rm -v "${PWD}/frontend:/app" frontend npm run test
+
+\# ESLint del frontend
+
+docker compose run --rm -v "${PWD}/frontend:/app" frontend npm run lint
+
+\# Verificar formato del frontend
+
+docker compose run --rm -v "${PWD}/frontend:/app" frontend npm run format:check
+
+\# Compilar frontend y copiar los assets al volumen compartido
+
+docker compose up --build -d
+
+\# Revisar estado de los servicios
+
+docker compose ps
+
+```
+
+Si un script de npm no está definido en `frontend/package.json`, npm mostrará `Missing script`. Revisa los scripts disponibles en ese archivo y utiliza el comando que esté configurado.
